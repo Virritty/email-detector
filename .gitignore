@@ -8,3 +8,4 @@ results/
 samples/
 *.csv
 *.png
+.DS_Store
