@@ -14,4 +14,4 @@ df = df.head(20000)
 
 # Сохраняем в CSV
 df.to_csv("train_data.csv", index=False)
-print("Готово. Файл train_data.csv создан.")
+print("Файл train_data.csv создан")

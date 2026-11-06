@@ -44,7 +44,7 @@ def train_baseline_model(data_path="train_data.csv"):
     print(f" - F1 Score:  {f1:.4f}")
     print(f" - ROC AUC:   {roc_auc:.4f}")
 
-    # Сохраняем метрики в json
+    #cохраняем метрики в json
     metrics = {
         "precision": round(precision, 4),
         "recall": round(recall, 4),
@@ -72,7 +72,7 @@ def train_baseline_model(data_path="train_data.csv"):
 
     joblib.dump(model, "text_detector_model.pkl")
     joblib.dump(vectorizer, "tfidf_vectorizer.pkl")
-    print("Файлы 'text_detector_model.pkl' и 'tfidf_vectorizer.pkl' успешно созданы!")
+    print("Файлы 'text_detector_model.pkl' и 'tfidf_vectorizer.pkl' созданы")
 
 if __name__ == "__main__":
     train_baseline_model()

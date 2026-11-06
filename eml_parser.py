@@ -3,7 +3,7 @@ import email
 from email import policy
 from email.header import decode_header
 
-# Какие расширения считаем картинками
+# возможные расширения картинок
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff")
 
 def decode_filename(raw_name):
@@ -22,11 +22,11 @@ def decode_filename(raw_name):
 def is_image_part(part):
     content_type = part.get_content_type()
 
-    # 1. Явно указан image/*
+    #явно указано image/*
     if content_type.startswith("image/"):
         return True
 
-    # 2. Generic-тип, но расширение файла — картинка
+    # Generic-тип, но расширение файла — картинка
     if content_type == "application/octet-stream":
         filename = decode_filename(part.get_filename())
         if filename and filename.lower().endswith(IMAGE_EXTENSIONS):
@@ -42,11 +42,11 @@ def parse_eml(filepath):
         "images": []
     }
 
-    # Открываем файл и парсим как email
+    #открываем файл, парсим как email
     with open(filepath, "rb") as f:
         msg = email.message_from_binary_file(f, policy=policy.default)
 
-    # --- Извлекаем тему письма ---
+    # извлечение темы письма
     raw_subject = msg.get('subject')
     if raw_subject:
         subject_parts = decode_header(raw_subject)
@@ -58,28 +58,28 @@ def parse_eml(filepath):
                 subject_text += s_part
         result["subject"] = subject_text
 
-    # Создаём папку для картинок конкретного письма
+    # создание папки для картинок конкретного письма
     name = os.path.splitext(os.path.basename(filepath))[0]
     img_dir = os.path.join("output", name)
     os.makedirs(img_dir, exist_ok=True)
 
-    # Проходим по всем частям письма
+    #проход по всем частям письма
     for part in msg.walk():
         content_type = part.get_content_type()
 
-        # 1. Текстовое тело
+        # текст
         if content_type == "text/plain":
             payload = part.get_payload(decode=True)
             if payload:
                 result["text"] += payload.decode(part.get_content_charset() or "utf-8", errors="replace")
 
-        # 2. HTML тело
+        # HTML
         elif content_type == "text/html":
             payload = part.get_payload(decode=True)
             if payload:
                 result["html"] += payload.decode(part.get_content_charset() or "utf-8", errors="replace")
 
-        # 3. Картинки (вложения)
+        # Картинки
         elif is_image_part(part):
             raw_filename = part.get_filename()
             filename = decode_filename(raw_filename) or "image_unknown"
