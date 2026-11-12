@@ -1,0 +1,25 @@
+services:
+  # Скачать датасет и обучить текстовую модель (создаёт *.pkl в папке проекта)
+  # Запуск: docker compose run --rm train
+  train:
+    build: .
+    image: ai-email-detector
+    entrypoint: ["sh", "-c", "python download_data.py && python train_detector.py"]
+    volumes:
+      - .:/app
+      - hf_cache:/root/.cache/huggingface
+    profiles: ["train"]
+
+  # Анализ писем из папки samples/, результаты в results/
+  # Запуск: docker compose up detector
+  detector:
+    build: .
+    image: ai-email-detector
+    command: ["--dir", "samples", "--out", "results"]
+    volumes:
+      - .:/app
+      - hf_cache:/root/.cache/huggingface
+
+volumes:
+  # Кэш моделей Hugging Face, чтобы не скачивать их при каждом запуске
+  hf_cache:

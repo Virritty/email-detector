@@ -110,8 +110,7 @@ elif args.dir:
     files = glob.glob(os.path.join(args.dir, "*.eml"))
         
     if not files:
-        print("Нет файлов .eml")
-        return
+        raise SystemExit("Нет файлов .eml")
 
     summary = {}
     for f in files:
