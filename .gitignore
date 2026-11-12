@@ -1,11 +1,13 @@
 venv/
 __pycache__/
-*.pkl
-*.json
 output/
 results/
-*.eml
 samples/
-*.csv
-*.png
+*.eml
 .DS_Store
+
+# Создаются при обучении (docker compose run --rm train)
+*.pkl
+*.csv
+metrics.json
+roc_curve.png
