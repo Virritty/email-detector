@@ -6,6 +6,9 @@ import numpy as np
 model = joblib.load("text_detector_model.pkl")
 vectorizer = joblib.load("tfidf_vectorizer.pkl")
 
+# Словарь слов считаем один раз при загрузке, а не при каждом вызове (так быстрее)
+feature_names = vectorizer.get_feature_names_out()
+
 def split_into_sentences(text: str):
     raw_sentences = re.split(r"(?<=[.!?])\s+", text.strip())
     return [s.strip() for s in raw_sentences if s.strip()]
@@ -19,7 +22,6 @@ def get_top_ai_words(text: str, top_n: int = 5):
     vec = vectorizer.transform([text])
     
     # Получаем индексы слов, которые вообще есть в тексте
-    feature_names = vectorizer.get_feature_names_out()
     non_zero_indices = vec.nonzero()[1]
     
     if len(non_zero_indices) == 0:
@@ -64,7 +66,9 @@ def analyze_text(text: str, threshold: float = 0.5):
             "is_ai": prob >= threshold
         })
 
-    overall_prob = sum(ai_probs) / len(ai_probs) if ai_probs else 0.0
+    # Общую оценку считаем по всему тексту целиком — так же, как модель обучалась.
+    # Оценки отдельных предложений оставляем только для подробного отчёта.
+    overall_prob = float(model.predict_proba(vectorizer.transform([text]))[0][1])
 
     # Ищем ключевые слова, если текст похож на ИИ
     top_words = []
@@ -77,5 +81,5 @@ def analyze_text(text: str, threshold: float = 0.5):
         "total_sentences": len(sentence_results),
         "suspicious_sentences_count": sum(1 for s in sentence_results if s["is_ai"]),
         "sentences": sentence_results,
-        "top_words": top_words # <-- Новое поле
+        "top_words": top_words
     }

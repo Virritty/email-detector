@@ -7,7 +7,7 @@ from text_detector import analyze_text
 from html_detector import analyze_html
 from image_detector import analyze_image
 
-THRESHOLD = 0.75
+THRESHOLD = 0.5
 
 def analyze_single_email(filepath):
     try:
@@ -30,16 +30,19 @@ def analyze_single_email(filepath):
                 "ai_probability": img_res.get("ai_probability", 0.0),
                 "is_ai": img_res.get("is_ai", False)
             })
-        # берем максимальную вероятность из текста, html и темы
-        scores = [text_res["overall_ai_prob"], html_res["overall_ai_prob"], subj_res["overall_ai_prob"]]
-        overall_score = max(scores) if scores else 0.0
+        # берем максимальную вероятность из текста, html и картинок.
+        # Тема в итог не входит: это 2-3 слова, и на таких коротких текстах модель ненадёжна
+        # (почти любая тема получает ~0.55-0.65). Её оценка остаётся в zones для информации.
+        scores = [text_res["overall_ai_prob"], html_res["overall_ai_prob"]]
+        scores += [img["ai_probability"] for img in images_results]
+        overall_score = max(scores)
         
         verdict = "AI-Generated" if overall_score >= THRESHOLD else "Human-Written"
         
         # собираем объяснение
         explanation = f"Вердикт: {verdict}. Индекс AI: {overall_score:.2f}. "
         if text_res["overall_ai_prob"] >= THRESHOLD:
-            explanation += "Тело письма содержит шаблонные фразы"
+            explanation += "Тело письма содержит шаблонные фразы. "
             
             # Вытаскиваем ключевые слова
             if text_res.get("top_words"):
